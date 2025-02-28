@@ -1,14 +1,12 @@
-pragma solidity ^0.6.0;
+//SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/cryptography/ECDSA.sol";
+
 
 
 contract Airdrop {
 
-    using ECDSA for bytes32;
-    using SafeMath for *;
 
     IERC20 public airdropToken;
     uint256 public totalTokensWithdrawn;
@@ -19,7 +17,7 @@ contract Airdrop {
     event TokensAirdropped(address beneficiary);
 
     // Constructor, initial setup
-    constructor(address _airdropToken) public {
+    constructor(address _airdropToken) {
         require(_airdropToken != address(0));
 
         airdropToken = IERC20(_airdropToken);
@@ -37,7 +35,7 @@ contract Airdrop {
         bool status = airdropToken.transfer(beneficiary, TOKENS_PER_CLAIM);
         require(status, "Token transfer status is false.");
 
-        totalTokensWithdrawn = totalTokensWithdrawn.add(TOKENS_PER_CLAIM);
+        totalTokensWithdrawn = totalTokensWithdrawn+TOKENS_PER_CLAIM;
         emit TokensAirdropped(beneficiary);
     }
 

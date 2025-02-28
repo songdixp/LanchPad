@@ -1,17 +1,17 @@
-//"SPDX-License-Identifier: UNLICENSED"
-pragma solidity 0.6.12;
+//SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
 
 import "../interfaces/IAdmin.sol";
 import "../interfaces/ISalesFactory.sol";
 import "../interfaces/IAllocationStaking.sol";
-import "../interfaces/IERC20Metadata.sol";
-import "@openzeppelin/contracts/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
-contract C2NSale is ReentrancyGuard {
+contract C2NSale {
     using ECDSA for bytes32;
-    using SafeMath for uint256;
+    using MessageHashUtils for bytes32;
     using SafeERC20 for IERC20;
 
     // Pointer to Allocation staking contract
@@ -120,7 +120,7 @@ contract C2NSale is ReentrancyGuard {
     );
 
     // Constructor, always initialized through SalesFactory
-    constructor(address _admin, address _allocationStaking) public {
+    constructor(address _admin, address _allocationStaking) {
         require(_admin != address(0));
         require(_allocationStaking != address(0));
         admin = IAdmin(_admin);
@@ -169,9 +169,7 @@ contract C2NSale is ReentrancyGuard {
         maxVestingTimeShift = 0;
 
         for (uint256 i = 0; i < vestingPortionsUnlockTime.length; i++) {
-            vestingPortionsUnlockTime[i] = vestingPortionsUnlockTime[i].add(
-                timeToShift
-            );
+            vestingPortionsUnlockTime[i] = vestingPortionsUnlockTime[i]+ timeToShift;
         }
     }
 
@@ -326,7 +324,7 @@ contract C2NSale is ReentrancyGuard {
             "sale already started."
         );
         //  postpone registration start time
-        sale.saleStart = sale.saleStart.add(timeToShift);
+        sale.saleStart = sale.saleStart+timeToShift;
         require(
             sale.saleStart + timeToShift < sale.saleEnd,
             "Start time can not be greater than end time."
@@ -336,14 +334,12 @@ contract C2NSale is ReentrancyGuard {
     /// @notice     Function to extend registration period
     function extendRegistrationPeriod(uint256 timeToAdd) external onlyAdmin {
         require(
-            registration.registrationTimeEnds.add(timeToAdd) <
+            registration.registrationTimeEnds+timeToAdd <
             sale.saleStart,
             "Registration period overflows sale start."
         );
 
-        registration.registrationTimeEnds = registration
-        .registrationTimeEnds
-        .add(timeToAdd);
+        registration.registrationTimeEnds = registration.registrationTimeEnds+timeToAdd;
     }
 
     /// @notice     Admin function to set max participation before sale start
@@ -419,7 +415,7 @@ contract C2NSale is ReentrancyGuard {
 
         // Compute the amount of tokens user is buying
         uint256 amountOfTokensBuying =
-        (msg.value).mul(uint(10) ** IERC20Metadata(address(sale.token)).decimals()).div(sale.tokenPriceInETH);
+        (msg.value)*uint(10) ** IERC20Metadata(address(sale.token)).decimals()/sale.tokenPriceInETH;
 
         // Must buy more than 0 tokens
         require(amountOfTokensBuying > 0, "Can't buy 0 tokens");
@@ -431,10 +427,10 @@ contract C2NSale is ReentrancyGuard {
         );
 
         // Increase amount of sold tokens
-        sale.totalTokensSold = sale.totalTokensSold.add(amountOfTokensBuying);
+        sale.totalTokensSold = sale.totalTokensSold+amountOfTokensBuying;
 
         // Increase amount of ETH raised
-        sale.totalETHRaised = sale.totalETHRaised.add(msg.value);
+        sale.totalETHRaised = sale.totalETHRaised+msg.value;
 
         bool[] memory _isPortionWithdrawn = new bool[](
             vestingPortionsUnlockTime.length
@@ -476,10 +472,7 @@ contract C2NSale is ReentrancyGuard {
         vestingPortionsUnlockTime[portionId] <= block.timestamp
         ) {
             p.isPortionWithdrawn[portionId] = true;
-            uint256 amountWithdrawing = p
-            .amountBought
-            .mul(vestingPercentPerPortion[portionId])
-            .div(portionVestingPrecision);
+            uint256 amountWithdrawing = p.amountBought*vestingPercentPerPortion[portionId]/portionVestingPrecision;
 
             // Withdraw percent which is unlocked at that portion
             if (amountWithdrawing > 0) {
@@ -506,12 +499,9 @@ contract C2NSale is ReentrancyGuard {
             vestingPortionsUnlockTime[portionId] <= block.timestamp
             ) {
                 p.isPortionWithdrawn[portionId] = true;
-                uint256 amountWithdrawing = p
-                .amountBought
-                .mul(vestingPercentPerPortion[portionId])
-                .div(portionVestingPrecision);
+                uint256 amountWithdrawing = p.amountBought*vestingPercentPerPortion[portionId]/portionVestingPrecision;
                 // Withdraw percent which is unlocked at that portion
-                totalToWithdraw = totalToWithdraw.add(amountWithdrawing);
+                totalToWithdraw = totalToWithdraw+amountWithdrawing;
             }
         }
 
@@ -567,7 +557,7 @@ contract C2NSale is ReentrancyGuard {
         sale.leftoverWithdrawn = true;
 
         // Amount of tokens which are not sold
-        uint256 leftover = sale.amountOfTokensToSell.sub(sale.totalTokensSold);
+        uint256 leftover = sale.amountOfTokensToSell-sale.totalTokensSold;
 
         if (leftover > 0) {
             sale.token.safeTransfer(msg.sender, leftover);

@@ -1,5 +1,5 @@
-// "SPDX-License-Identifier: UNLICENSED"
-pragma solidity 0.6.12;
+//SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
 
 import "../interfaces/IAdmin.sol";
 import "./C2NSale.sol";
@@ -26,7 +26,7 @@ contract SalesFactory {
         _;
     }
 
-    constructor (address _adminContract, address _allocationStaking) public {
+    constructor (address _adminContract, address _allocationStaking)  {
         admin = IAdmin(_adminContract);
         allocationStaking = _allocationStaking;
     }

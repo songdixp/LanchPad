@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.6.12;
+pragma solidity ^0.8.0;
 
 contract Admin {
 
@@ -16,7 +16,7 @@ contract Admin {
     }
 
     // Constructor to set initial admins during deployment
-    constructor (address [] memory _admins) public {
+    constructor (address [] memory _admins)  {
         for(uint i = 0; i < _admins.length; i++) {
             admins.push(_admins[i]);
             isAdmin[_admins[i]] = true;
