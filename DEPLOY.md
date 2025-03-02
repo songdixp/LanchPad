@@ -31,12 +31,21 @@ cp portal-api.env.example portal-api.env
 ## 打包后端服务
 cd c2n-b2
 mvn clean install -Dmaven.test.skip=true
-打包好之后的文件会存放到 c2n-be/portal-api/target/目录下
+打包好之后的文件会存放到 c2n-be/portal-api/target/目录下, 方便docker 进行加载
 
 `说明` 需要保证java环境是1.8，并且javac环境保持一致
 
+## 构建镜像
+cd portal-api 
+./docker-build.sh  如果没有执行权限需要chmod +x docker-build.sh
+如果存在docker 镜像源的问题，需要编写damon.json 配置可用的docker镜像源
+构建完成，在桌面端需要刷新才能在 images 里面看到构件好的景象。
 
+## 启动服务
+cd ../deployment 
+docker compose up -d
 
+ 
 需要确保在开发环境中安装好 jdk8, maven(3.6.3+) && docker(20.10.17+) 和 docker compose
 使用 c2n-be/deploy.sh 完成部署
 sh deploy.sh
