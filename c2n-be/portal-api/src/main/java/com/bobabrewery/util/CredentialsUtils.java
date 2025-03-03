@@ -20,6 +20,11 @@ public class CredentialsUtils {
     @Value("${owner.private.key}")
     public String privateKey;
 
+    @Value("${network.url}")
+    public String networkUrl;
+
+
+
     private Credentials credentials;
 
     @PostConstruct
